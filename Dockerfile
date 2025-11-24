@@ -23,6 +23,3 @@ ENV PORT=10000
 
 # Start the Flask app using Gunicorn
 CMD gunicorn --workers=1 --timeout=600 --bind 0.0.0.0:$PORT main:app
-
-
-
