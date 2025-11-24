@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 app = Flask(__name__)
 
 def get_retailer_domain(url):
-    return urlparse(url).path.lower()
+    return urlparse(url).netloc.lower()
 
 BRIGHTDATA_USERNAME = os.getenv("BRIGHTDATA_USERNAME")
 BRIGHTDATA_PASSWORD = os.getenv("BRIGHTDATA_PASSWORD")
@@ -35,18 +35,18 @@ def scrape_product():
         print("Domain:", domain)
         async with async_playwright() as p:
             # Choose browser dynamically
+            args = ['--disable-dev-shm-usage', '--no-sandbox', f'--proxy-server={proxy_url}']
             if browser_type == 'webkit':
-                browser = await p.webkit.launch(headless=True, args=['--disable-dev-shm-usage', '--no-sandbox', f'--proxy-server={proxy_url}'])
+                browser = await p.webkit.launch(headless=True, args=args)
             elif browser_type == 'firefox':
-                browser = await p.firefox.launch(headless=True, args=['--disable-dev-shm-usage'])
+                browser = await p.firefox.launch(headless=True, args=args)
             else:
-                browser = await p.chromium.launch(headless=True, args=['--disable-dev-shm-usage'])
+                browser = await p.chromium.launch(headless=True, args=args)
 
-            context = await browser.new_context(ignore_https_errors=True, user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15",
-            viewport={"width": 1280, "height": 800})
+            context = await browser.new_context(ignore_https_errors=True, user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15", viewport={"width": 1280, "height": 800})
             page = await context.new_page()
 
-            specs = None
+            specifications = None
 
             try:
                 await page.goto(url, timeout=60000)
@@ -57,7 +57,7 @@ def scrape_product():
                 # -------------------------
                 # SKIL
                 # -------------------------
-                if "skil" or "SKIL" in domain:
+                if "skil" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="sk-pdp-specifications__col-container-right"]', timeout=1200000, state="attached")
                                         
@@ -70,7 +70,7 @@ def scrape_product():
                 # -------------------------
                 # RYOBI
                 # -------------------------
-                elif "ryobi" or "RYOBI" in domain:
+                elif "ryobi" in domain.lower():
                     # Scroll and click Specifications button
                     specs_button = page.locator('button:has-text("Specifications")')
                     await specs_button.scroll_into_view_if_needed()
@@ -100,7 +100,7 @@ def scrape_product():
                 # -------------------------
                 # CRAFTSMAN
                 # -------------------------
-                elif "craftsman" or "CRAFTSMAN" in domain:
+                elif "craftsman" in domain.lower():
                     # Wait for the container to be attached
                     await page.wait_for_selector('.container.w-full.bg-color-brand-surface-primary', timeout=1200000, state="attached")
 
@@ -140,7 +140,7 @@ def scrape_product():
                 # -------------------------
                 # WORX
                 # -------------------------
-                elif "worx" or "WORX" in domain:
+                elif "worx" in domain.lower():
                     # --- Extract Specs ---
                     # Click the Technical Specs accordion
                     await page.click('a.switch:has-text("Technical Specs")')
@@ -168,14 +168,14 @@ def scrape_product():
                 # ----------------------------
                 # KOBALT
                 # ----------------------------
-                elif "kobalt" in domain:
+                elif "kobalt" in domain.lower():
                     # --- Extract Specs ---
                     print(f"specs")
 
                 # ----------------------------
                 # MASTERFORCE
                 # ----------------------------
-                elif "Masterforce" in domain:
+                elif "masterforce" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="card-body row m-0 w-100 justify-content-center col-12"]', timeout=1200000, state="attached")
                      
@@ -189,7 +189,7 @@ def scrape_product():
                 # ----------------------------
                 # HYPERTOUGH
                 # ----------------------------
-                elif "hyper-tough" or "Hyper-Tough" in domain:
+                elif "hyper-tough" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="nt1"]', timeout=1200000, state="attached")
     
@@ -203,7 +203,7 @@ def scrape_product():
                 # ----------------------------
                 # BAUER
                 # ----------------------------
-                elif "Bauer" in domain:
+                elif "bauer" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[id="SpecificationsContent"]', timeout=1200000, state="attached")
     
@@ -215,7 +215,7 @@ def scrape_product():
                 # -------------------------
                 # HERCULES
                 # -------------------------
-                elif "hercules" or "Hercules" in domain:
+                elif "hercules" in domain.lower():
                     await page.wait_for_selector('[id="SpecificationsContent"]', timeout=1200000, state="attached")
     
                     specs = await page.text_content('[id="SpecificationsContent"]')
@@ -226,7 +226,7 @@ def scrape_product():
                 # -------------------------
                 # RIGID
                 # -------------------------
-                elif "rigid" or "RIGID" in domain:
+                elif "rigid" in domain.lower():
                     await page.wait_for_selector('[class="specifications-table"]', timeout=1200000, state="attached")
     
 
@@ -238,7 +238,7 @@ def scrape_product():
                 # -------------------------
                 # BLACKDECKER
                 # -------------------------
-                elif "BLACK-DECKER" or "black-decker" in domain:
+                elif "black-decker" in domain.lower():
                     await page.wait_for_selector('[class="mb-[10px]"]', timeout=1200000, state="attached")
     
                     specs = await page.text_content('[class="mb-[10px]"]')
@@ -250,7 +250,7 @@ def scrape_product():
                 # --------------------------
                 # MILWAUKEE
                 # --------------------------
-                elif "milwaukee" or "Milwaukee" in domain:
+                elif "milwaukee" in domain.lower():
 
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="specs-container text-14 leading-tight font-helvetica55 text-gray-900 w-[480px]"]', timeout=1200000, state="attached")
@@ -264,7 +264,7 @@ def scrape_product():
                 # --------------------------
                 # MAKITA
                 # --------------------------
-                elif "makita" or "Makita" in domain:
+                elif "makita" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="detail-specs js-columns"]', timeout=1200000, state="attached")
     
@@ -276,7 +276,7 @@ def scrape_product():
                 # --------------------------
                 # DEWALT
                 # --------------------------
-                elif "dewalt" or "DEWALT" in domain:
+                elif "dewalt" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="coh-container coh-style-specifications"]', timeout=1200000, state="attached")
     
@@ -288,7 +288,7 @@ def scrape_product():
                 # --------------------------
                 # METABO
                 # --------------------------
-                elif "metabo" or "Metabo" in domain:
+                elif "metabo" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[id="attributes"]', timeout=1200000, state="attached")
     
@@ -300,7 +300,7 @@ def scrape_product():
                 # --------------------------
                 # BOSCH
                 # --------------------------
-                elif "bosch" or "Bosch" in domain:
+                elif "bosch" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="table__body"]', timeout=1200000, state="attached")
     
@@ -312,7 +312,7 @@ def scrape_product():
                 # --------------------------
                 # DREMEL
                 # --------------------------
-                elif "dremel" or "Dremel" in domain:
+                elif "dremel" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="TechnicalSpecification_tablesWrapper__zVSHu"]', timeout=1200000, state="attached")
     
@@ -324,7 +324,7 @@ def scrape_product():
                 # --------------------------
                 # GREENWORKS
                 # --------------------------
-                elif "greenworks" or "Greenworks" in domain:
+                elif "greenworks" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="specifications"]', timeout=1200000, state="attached")
                     await page.wait_for_selector('[class="additional-specs"]', timeout=1200000, state="attached") 
@@ -339,7 +339,7 @@ def scrape_product():
                 # --------------------------
                 # KREG
                 # --------------------------
-                elif "kreg" or "Kreg" in domain:
+                elif "kreg" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="grid md:grid-cols-2 gap-4 md:gap-6"]', timeout=1200000, state="attached")
     
@@ -351,7 +351,7 @@ def scrape_product():
                 # --------------------------
                 # MASTERCRAFT
                 # --------------------------
-                elif "mastercraft" or "Mastercraft" in domain:
+                elif "mastercraft" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="flex flex-col gap-4 items-start pb-6 sm:pb-8 text-color-brand-text-secondary prose-body-medium-sm xl:prose-body-medium-md prose-ol:pl-5 prose-ul:pl-5 prose-ul:list-disc prose-ol:list-decimal [&_::marker]:text-color-brand-text-secondary [&_p_a]:underline !prose-body-medium-sm"]', timeout=1200000, state="attached")
     
@@ -363,7 +363,7 @@ def scrape_product():
                 # --------------------------
                 # HILTI
                 # --------------------------
-                elif "hilti" or "Hilti" in domain:
+                elif "hilti" in domain.lower():
                     # --- Extract Specs ---
                     await page.wait_for_selector('[class="px-1 mb-2"]', timeout=1200000, state="attached")
     
@@ -375,7 +375,7 @@ def scrape_product():
                 # --------------------------
                 # HART
                 # --------------------------
-                elif "hart" or "Hart" in domain:
+                elif "hart" in domain.lower():
                     # --- Extract Specs ---
                     specs_tab = page.locator('button:has-text("Specifications")')
                     await specs_tab.click(force=True)
