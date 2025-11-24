@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 app = Flask(__name__)
 
 def get_retailer_domain(url):
-    return urlparse(url).netloc.lower()
+    return urlparse(url).path.lower()
 
 BRIGHTDATA_USERNAME = os.getenv("BRIGHTDATA_USERNAME")
 BRIGHTDATA_PASSWORD = os.getenv("BRIGHTDATA_PASSWORD")
@@ -432,3 +432,4 @@ keep_alive()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
+
